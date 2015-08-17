@@ -49,8 +49,8 @@ const char *fontfilename;
 struct atlas {
 	GLuint tex;		// texture object
 
-	int w;			// width of texture in pixels
-	int h;			// height of texture in pixels
+	unsigned int w;			// width of texture in pixels
+	unsigned int h;			// height of texture in pixels
 
 	struct {
 		float ax;	// advance.x
@@ -70,8 +70,8 @@ struct atlas {
 		FT_Set_Pixel_Sizes(face, 0, height);
 		FT_GlyphSlot g = face->glyph;
 
-		int roww = 0;
-		int rowh = 0;
+		unsigned int roww = 0;
+		unsigned int rowh = 0;
 		 w = 0;
 		 h = 0;
 
