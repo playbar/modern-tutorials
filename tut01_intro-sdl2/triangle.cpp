@@ -5,10 +5,10 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
-
-/* Using the SDL2 library for the base OpenGL init */
+/* Use glew.h instead of gl.h to get all the GL prototypes declared */
+#include <GL/glew.h>
+/* Using SDL2 for the base window and OpenGL context init */
 #include "SDL.h"
-#include "SDL_opengles2.h"
 
 GLuint program;
 GLint attribute_coord2d;
@@ -119,12 +119,19 @@ void mainLoop(SDL_Window* window) {
 }
 
 int main(int argc, char* argv[]) {
+	SDL_Init(SDL_INIT_VIDEO);
 	SDL_Window* window = SDL_CreateWindow("My First Triangle",
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 		640, 480,
 		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
 	SDL_GL_CreateContext(window);
-	
+
+	GLenum glew_status = glewInit();
+	if (glew_status != GLEW_OK) {
+		fprintf(stderr, "Error: %s\n", glewGetErrorString(glew_status));
+		return 1;
+	}
+
 	if (!init_resources())
 		return 1;
 
