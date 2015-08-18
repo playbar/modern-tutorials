@@ -2,8 +2,7 @@ Under Debian and Ubuntu GNU/Linux, you need to install the following
 packages:
 
   apt-get install build-essential \
-    libgl1-mesa-dev libglew1.5-dev freeglut3-dev \
-    libglm-dev
+    libgl1-mesa-dev libglew-dev libsdl2-dev libglm-dev
 
 To compile an example, go to its directly and just type:
 
