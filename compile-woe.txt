@@ -1,2 +1,0 @@
-See:
-  https://en.wikibooks.org/wiki/OpenGL_Programming/Installation/Windows

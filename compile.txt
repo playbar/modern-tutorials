@@ -1,10 +1,9 @@
-Under Debian and Ubuntu GNU/Linux, you need to install the following
-packages:
+First you need to install development packages:
 
-  apt-get install build-essential \
-    libgl1-mesa-dev libglew-dev libsdl2-dev libglm-dev
+  https://en.wikibooks.org/wiki/OpenGL_Programming/Installation/Linux
+  https://en.wikibooks.org/wiki/OpenGL_Programming/Installation/Windows  # for MinGW or MSys
 
-To compile an example, go to its directly and just type:
+To compile an example, go to its directory and just type:
 
   cd tut01/
   make
