@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
 
 	GLenum glew_status = glewInit();
 	if (glew_status != GLEW_OK) {
-		cerr << "Error: glewInit: "  << glewGetErrorString(glew_status) << endl;
+		cerr << "Error: glewInit: " << glewGetErrorString(glew_status) << endl;
 		return EXIT_FAILURE;
 	}
 	if (!GLEW_VERSION_2_0) {

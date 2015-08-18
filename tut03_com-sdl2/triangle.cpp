@@ -197,13 +197,13 @@ int main(int argc, char* argv[]) {
 	//SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 	//SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 	if (SDL_GL_CreateContext(window) == NULL) {
-		fprintf(stderr, "Error: SDL_GL_CreateContext: %s\n", SDL_GetError());
+		cerr << "Error: SDL_GL_CreateContext: " << SDL_GetError() << endl;
 		return EXIT_FAILURE;
 	}
 
 	GLenum glew_status = glewInit();
 	if (glew_status != GLEW_OK) {
-		cerr << "Error: glewInit: "  << glewGetErrorString(glew_status) << endl;
+		cerr << "Error: glewInit: " << glewGetErrorString(glew_status) << endl;
 		return EXIT_FAILURE;
 	}
 	if (!GLEW_VERSION_2_0) {

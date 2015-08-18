@@ -3,9 +3,9 @@
  * This file is in the public domain.
  * Contributors: Sylvain Beucler
  */
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstdlib>
+#include <iostream>
+using namespace std;
 
 /* Use glew.h instead of gl.h to get all the GL prototypes declared */
 #include <GL/glew.h>
@@ -18,7 +18,6 @@
 
 /* GLM */
 // #define GLM_MESSAGES
-#define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -31,8 +30,7 @@ GLuint texture_id;
 GLint attribute_coord3d, attribute_texcoord;
 GLint uniform_mvp, uniform_mytexture;
 
-int init_resources()
-{
+bool init_resources() {
 	GLfloat cube_vertices[] = {
 		// front
 		-1.0, -1.0,  1.0,
@@ -123,8 +121,8 @@ int init_resources()
 	GLint link_ok = GL_FALSE;
 	
 	GLuint vs, fs;
-	if ((vs = create_shader("cube.v.glsl", GL_VERTEX_SHADER))   == 0) return 0;
-	if ((fs = create_shader("cube.f.glsl", GL_FRAGMENT_SHADER)) == 0) return 0;
+	if ((vs = create_shader("cube.v.glsl", GL_VERTEX_SHADER))   == 0) return false;
+	if ((fs = create_shader("cube.f.glsl", GL_FRAGMENT_SHADER)) == 0) return false;
 	
 	program = glCreateProgram();
 	glAttachShader(program, vs);
@@ -132,39 +130,39 @@ int init_resources()
 	glLinkProgram(program);
 	glGetProgramiv(program, GL_LINK_STATUS, &link_ok);
 	if (!link_ok) {
-		fprintf(stderr, "glLinkProgram:");
+		cerr << "glLinkProgram:";
 		print_log(program);
-		return 0;
+		return false;
 	}
 	
 	const char* attribute_name;
 	attribute_name = "coord3d";
 	attribute_coord3d = glGetAttribLocation(program, attribute_name);
 	if (attribute_coord3d == -1) {
-		fprintf(stderr, "Could not bind attribute %s\n", attribute_name);
-		return 0;
+		cerr << "Could not bind attribute " << attribute_name << endl;
+		return false;
 	}
 	attribute_name = "texcoord";
 	attribute_texcoord = glGetAttribLocation(program, attribute_name);
 	if (attribute_texcoord == -1) {
-		fprintf(stderr, "Could not bind attribute %s\n", attribute_name);
-		return 0;
+		cerr << "Could not bind attribute " << attribute_name << endl;
+		return false;
 	}
 	const char* uniform_name;
 	uniform_name = "mvp";
 	uniform_mvp = glGetUniformLocation(program, uniform_name);
 	if (uniform_mvp == -1) {
-		fprintf(stderr, "Could not bind uniform %s\n", uniform_name);
-		return 0;
+		cerr << "Could not bind uniform " << uniform_name << endl;
+		return false;
 	}
 	uniform_name = "mytexture";
 	uniform_mytexture = glGetUniformLocation(program, uniform_name);
 	if (uniform_mytexture == -1) {
-		fprintf(stderr, "Could not bind uniform %s\n", uniform_name);
-		return 0;
+		cerr << "Could not bind uniform " << uniform_name << endl;
+		return false;
 	}
 	
-	return 1;
+	return true;
 }
 
 void logic() {
@@ -258,29 +256,29 @@ int main(int argc, char* argv[]) {
 	SDL_Init(SDL_INIT_VIDEO);
 	SDL_Window* window = SDL_CreateWindow("My Textured Cube",
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-		640, 480,
+		screen_width, screen_height,
 		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
 	//SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 	//SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 	if (SDL_GL_CreateContext(window) == NULL) {
-		fprintf(stderr, "Error: SDL_GL_CreateContext: %s\n", SDL_GetError());
-		return 1;
+		cerr << "Error: SDL_GL_CreateContext: " << SDL_GetError() << endl;
+		return EXIT_FAILURE;
 	}
 
 	GLenum glew_status = glewInit();
 	if (glew_status != GLEW_OK) {
-		fprintf(stderr, "Error: glewInit: %s\n", glewGetErrorString(glew_status));
-		return 1;
+		cerr << "Error: glewInit: " << glewGetErrorString(glew_status) << endl;
+		return EXIT_FAILURE;
 	}
 	if (!GLEW_VERSION_2_0) {
-		fprintf(stderr, "Error: your graphic card does not support OpenGL 2.0\n");
-		return 1;
+		cerr << "Error: your graphic card does not support OpenGL 2.0" << endl;
+		return EXIT_FAILURE;
 	}
 
 	if (!init_resources())
-		return 1;
+		return EXIT_FAILURE;
 	
     glEnable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
@@ -288,5 +286,5 @@ int main(int argc, char* argv[]) {
     mainLoop(window);
 
 	free_resources();
-	return 0;
+	return EXIT_SUCCESS;
 }

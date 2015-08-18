@@ -6,7 +6,6 @@
 #include <cstdlib>
 #include <iostream>
 using namespace std;
-#include <cmath>
 
 /* Use glew.h instead of gl.h to get all the GL prototypes declared */
 #include <GL/glew.h>
@@ -107,7 +106,7 @@ void render(SDL_Window* window) {
 		3,                   // number of elements per vertex, here (x,y,z)
 		GL_FLOAT,            // the type of each element
 		GL_FALSE,            // take our values as-is
-		sizeof(struct attributes),  // next coord3d appears every 5 floats
+		sizeof(struct attributes),  // next coord3d appears every 6 floats
 		0                    // offset of first element
 		);
 	glVertexAttribPointer(
@@ -157,27 +156,28 @@ int main(int argc, char* argv[]) {
 	//SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 	//SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 	if (SDL_GL_CreateContext(window) == NULL) {
-		fprintf(stderr, "Error: SDL_GL_CreateContext: %s\n", SDL_GetError());
-		return 1;
+		cerr << "Error: SDL_GL_CreateContext: " << SDL_GetError() << endl;
+		return EXIT_FAILURE;
 	}
 
 	GLenum glew_status = glewInit();
 	if (glew_status != GLEW_OK) {
-		fprintf(stderr, "Error: glewInit: %s\n", glewGetErrorString(glew_status));
-		return 1;
+		cerr << "Error: glewInit: " << glewGetErrorString(glew_status) << endl;
+		return EXIT_FAILURE;
 	}
 	if (!GLEW_VERSION_2_0) {
-		fprintf(stderr, "Error: your graphic card does not support OpenGL 2.0\n");
-		return 1;
+		cerr << "Error: your graphic card does not support OpenGL 2.0" << endl;
+		return EXIT_FAILURE;
 	}
 
 	if (!init_resources())
-		return 1;
+		return EXIT_FAILURE;
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	mainLoop(window);
 	
 	free_resources();
-	return 0;
+	return EXIT_SUCCESS;
 }
