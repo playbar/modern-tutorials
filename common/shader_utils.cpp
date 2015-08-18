@@ -77,9 +77,9 @@ GLuint create_shader(const char* filename, GLenum type)
   const GLchar* sources[] = {
     // Define GLSL version
 #ifdef GL_ES_VERSION_2_0
-    "#version 100\n"
+    "#version 100\n"  // OpenGL ES 2.0
 #else
-    "#version 120\n"
+    "#version 120\n"  // OpenGL 2.1
 #endif
     ,
     // GLES2 precision specifiers

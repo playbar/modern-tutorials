@@ -3,9 +3,10 @@
  * This file is in the public domain.
  * Contributors: Sylvain Beucler
  */
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstdlib>
+#include <iostream>
+using namespace std;
+#include <cmath>
 
 /* Use glew.h instead of gl.h to get all the GL prototypes declared */
 #include <GL/glew.h>
@@ -16,7 +17,6 @@
 
 /* GLM */
 // #define GLM_MESSAGES
-#define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -32,7 +32,7 @@ struct attributes {
 	GLfloat v_color[3];
 };
 
-int init_resources() {
+bool init_resources() {
 	struct attributes triangle_attributes[] = {
 		{{ 0.0,  0.8, 0.0}, {1.0, 1.0, 0.0}},
 		{{-0.8, -0.8, 0.0}, {0.0, 0.0, 1.0}},
@@ -45,8 +45,8 @@ int init_resources() {
 	GLint link_ok = GL_FALSE;
 	
 	GLuint vs, fs;
-	if ((vs = create_shader("triangle.v.glsl", GL_VERTEX_SHADER))   == 0) return 0;
-	if ((fs = create_shader("triangle.f.glsl", GL_FRAGMENT_SHADER)) == 0) return 0;
+	if ((vs = create_shader("triangle.v.glsl", GL_VERTEX_SHADER))   == 0) return false;
+	if ((fs = create_shader("triangle.f.glsl", GL_FRAGMENT_SHADER)) == 0) return false;
 	
 	program = glCreateProgram();
 	glAttachShader(program, vs);
@@ -54,33 +54,33 @@ int init_resources() {
 	glLinkProgram(program);
 	glGetProgramiv(program, GL_LINK_STATUS, &link_ok);
 	if (!link_ok) {
-		fprintf(stderr, "glLinkProgram:");
+		cerr << "glLinkProgram:";
 		print_log(program);
-		return 0;
+		return false;
 	}
 	
 	const char* attribute_name;
 	attribute_name = "coord3d";
 	attribute_coord3d = glGetAttribLocation(program, attribute_name);
 	if (attribute_coord3d == -1) {
-		fprintf(stderr, "Could not bind attribute %s\n", attribute_name);
-		return 0;
+		cerr << "Could not bind attribute " << attribute_name << endl;
+		return false;
 	}
 	attribute_name = "v_color";
 	attribute_v_color = glGetAttribLocation(program, attribute_name);
 	if (attribute_v_color == -1) {
-		fprintf(stderr, "Could not bind attribute %s\n", attribute_name);
-		return 0;
+		cerr << "Could not bind attribute " << attribute_name << endl;
+		return false;
 	}
 	const char* uniform_name;
 	uniform_name = "m_transform";
 	uniform_m_transform = glGetUniformLocation(program, uniform_name);
 	if (uniform_m_transform == -1) {
-		fprintf(stderr, "Could not bind uniform_fade %s\n", uniform_name);
-		return 0;
+		cerr << "Could not bind uniform_fade " << uniform_name << endl;
+		return false;
 	}
 	
-	return 1;
+	return true;
 }
 
 void logic() {

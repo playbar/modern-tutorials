@@ -48,7 +48,7 @@ bool init_resources() {
 	const char* attribute_name = "coord2d";
 	attribute_coord2d = glGetAttribLocation(program, attribute_name);
 	if (attribute_coord2d == -1) {
-		fprintf(stderr, "Could not bind attribute %s\n", attribute_name);
+		cerr << "Could not bind attribute " << attribute_name << endl;
 		return false;
 	}
 	
@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
 	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 1);
 	if (SDL_GL_CreateContext(window) == NULL) {
 		cerr << "Error: SDL_GL_CreateContext: " << SDL_GetError() << endl;
-		return 1;
+		return EXIT_FAILURE;
 	}
 
 	GLenum glew_status = glewInit();
