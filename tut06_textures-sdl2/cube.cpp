@@ -7,9 +7,11 @@
 #include <stdlib.h>
 #include <math.h>
 
-/* Using the SDL2 library for the base OpenGL init */
+/* Use glew.h instead of gl.h to get all the GL prototypes declared */
+#include <GL/glew.h>
+/* Using SDL2 for the base window and OpenGL context init */
 #include "SDL.h"
-#include "SDL_opengles2.h"
+/* Using SDL2_image to load PNG & JPG in memory */
 #include "SDL_image.h"
 
 #include "../common-sdl2/shader_utils.h"
@@ -254,17 +256,28 @@ void mainLoop(SDL_Window* window) {
 }
 
 int main(int argc, char* argv[]) {
+	SDL_Init(SDL_INIT_VIDEO);
 	SDL_Window* window = SDL_CreateWindow("My Textured Cube",
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 		640, 480,
 		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+	//SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+	//SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 	if (SDL_GL_CreateContext(window) == NULL) {
-		fprintf(stderr, "Error: your graphic card does not support OpenGL ES 2.0\n");
-		exit(1);
+		fprintf(stderr, "Error: SDL_GL_CreateContext: %s\n", SDL_GetError());
+		return 1;
+	}
+
+	GLenum glew_status = glewInit();
+	if (glew_status != GLEW_OK) {
+		fprintf(stderr, "Error: glewInit: %s\n", glewGetErrorString(glew_status));
+		return 1;
+	}
+	if (!GLEW_VERSION_2_0) {
+		fprintf(stderr, "Error: your graphic card does not support OpenGL 2.0\n");
+		return 1;
 	}
 
 	if (!init_resources())
