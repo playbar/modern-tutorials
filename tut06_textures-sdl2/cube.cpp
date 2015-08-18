@@ -240,14 +240,13 @@ void free_resources() {
 	glDeleteTextures(1, &texture_id);
 }
 
-
 void mainLoop(SDL_Window* window) {
 	while (true) {
 		SDL_Event ev;
 		while (SDL_PollEvent(&ev)) {
 			if (ev.type == SDL_QUIT)
 				return;
-			if (ev.type == SDL_WINDOWEVENT && ev.window.event == SDL_WINDOWEVENT_RESIZED)
+			if (ev.type == SDL_WINDOWEVENT && ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
 				onResize(ev.window.data1, ev.window.data2);
 		}
 		logic();
