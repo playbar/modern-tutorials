@@ -23,112 +23,59 @@ using namespace std;
 #include <glm/gtc/type_ptr.hpp>
 
 int screen_width=800, screen_height=600;
-GLuint vbo_cube_vertices, vbo_cube_texcoords;
-GLuint ibo_cube_elements;
+GLuint vbo_sprite_vertices, vbo_sprite_texcoords;
 GLuint program;
-GLuint texture_id;
-GLint attribute_coord3d, attribute_texcoord;
+GLint attribute_v_coord, attribute_v_texcoord;
 GLint uniform_mvp, uniform_mytexture;
 
 bool init_resources() {
-	GLfloat cube_vertices[] = {
-		// front
-		-1.0, -1.0,  1.0,
-		1.0, -1.0,  1.0,
-		1.0,  1.0,  1.0,
-		-1.0,  1.0,  1.0,
-		// top
-		-1.0,  1.0,  1.0,
-		1.0,  1.0,  1.0,
-		1.0,  1.0, -1.0,
-		-1.0,  1.0, -1.0,
-		// back
-		1.0, -1.0, -1.0,
-		-1.0, -1.0, -1.0,
-		-1.0,  1.0, -1.0,
-		1.0,  1.0, -1.0,
-		// bottom
-		-1.0, -1.0, -1.0,
-		1.0, -1.0, -1.0,
-		1.0, -1.0,  1.0,
-		-1.0, -1.0,  1.0,
-		// left
-		-1.0, -1.0, -1.0,
-		-1.0, -1.0,  1.0,
-		-1.0,  1.0,  1.0,
-		-1.0,  1.0, -1.0,
-		// right
-		1.0, -1.0,  1.0,
-		1.0, -1.0, -1.0,
-		1.0,  1.0, -1.0,
-		1.0,  1.0,  1.0,
+	GLfloat sprite_vertices[] = {
+	    0,    0, 0, 1,
+	  256,    0, 0, 1,
+	    0,  256, 0, 1,
+	  256,  256, 0, 1,
 	};
-	glGenBuffers(1, &vbo_cube_vertices);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_cube_vertices);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), cube_vertices, GL_STATIC_DRAW);
+	glGenBuffers(1, &vbo_sprite_vertices);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_sprite_vertices);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(sprite_vertices), sprite_vertices, GL_STATIC_DRAW);
 	
-	GLfloat cube_texcoords[2*4*6] = {
-		// front
+	GLfloat sprite_texcoords[] = {
 		0.0, 0.0,
 		1.0, 0.0,
-		1.0, 1.0,
 		0.0, 1.0,
+		1.0, 1.0,
 	};
-	for (int i = 1; i < 6; i++)
-		memcpy(&cube_texcoords[i*4*2], &cube_texcoords[0], 2*4*sizeof(GLfloat));
-	glGenBuffers(1, &vbo_cube_texcoords);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_cube_texcoords);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(cube_texcoords), cube_texcoords, GL_STATIC_DRAW);
+	glGenBuffers(1, &vbo_sprite_texcoords);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_sprite_texcoords);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(sprite_texcoords), sprite_texcoords, GL_STATIC_DRAW);
 	
-	GLushort cube_elements[] = {
-		// front
-		0,  1,  2,
-		2,  3,  0,
-		// top
-		4,  5,  6,
-		6,  7,  4,
-		// back
-		8,  9, 10,
-		10, 11,  8,
-		// bottom
-		12, 13, 14,
-		14, 15, 12,
-		// left
-		16, 17, 18,
-		18, 19, 16,
-		// right
-		20, 21, 22,
-		22, 23, 20,
-	};
-	glGenBuffers(1, &ibo_cube_elements);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_cube_elements);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cube_elements), cube_elements, GL_STATIC_DRAW);
-
 	SDL_Surface* res_texture = IMG_Load("res_texture.png");
 	if (res_texture == NULL) {
 		cerr << "IMG_Load: " << SDL_GetError() << endl;
 		return false;
 	}
+	GLuint texture_id;
 	glGenTextures(1, &texture_id);
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture_id);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexImage2D(GL_TEXTURE_2D, // target
-		0,  // level, 0 = base, no minimap,
+		0,	// level, 0 = base, no minimap,
 		GL_RGBA, // internalformat
-		res_texture->w,  // width
-		res_texture->h,  // height
-		0,  // border, always 0 in OpenGL ES
-		GL_RGBA,  // format
+		res_texture->w,	// width
+		res_texture->h,	// height
+		0,	// border, always 0 in OpenGL ES
+		GL_RGBA,	 // format
 		GL_UNSIGNED_BYTE, // type
 		res_texture->pixels);
 	SDL_FreeSurface(res_texture);
-
+	
 	GLint link_ok = GL_FALSE;
 	
 	GLuint vs, fs;
-	if ((vs = create_shader("cube.v.glsl", GL_VERTEX_SHADER))   == 0) return false;
-	if ((fs = create_shader("cube.f.glsl", GL_FRAGMENT_SHADER)) == 0) return false;
-	
+	if ((vs = create_shader("sprites.v.glsl", GL_VERTEX_SHADER))   == 0) return false;
+	if ((fs = create_shader("sprites.f.glsl", GL_FRAGMENT_SHADER)) == 0) return false;
+
 	program = glCreateProgram();
 	glAttachShader(program, vs);
 	glAttachShader(program, fs);
@@ -139,17 +86,17 @@ bool init_resources() {
 		print_log(program);
 		return false;
 	}
-	
+
 	const char* attribute_name;
-	attribute_name = "coord3d";
-	attribute_coord3d = glGetAttribLocation(program, attribute_name);
-	if (attribute_coord3d == -1) {
+	attribute_name = "v_coord";
+	attribute_v_coord = glGetAttribLocation(program, attribute_name);
+	if (attribute_v_coord == -1) {
 		cerr << "Could not bind attribute " << attribute_name << endl;
 		return false;
 	}
-	attribute_name = "texcoord";
-	attribute_texcoord = glGetAttribLocation(program, attribute_name);
-	if (attribute_texcoord == -1) {
+	attribute_name = "v_texcoord";
+	attribute_v_texcoord = glGetAttribLocation(program, attribute_name);
+	if (attribute_v_texcoord == -1) {
 		cerr << "Could not bind attribute " << attribute_name << endl;
 		return false;
 	}
@@ -170,48 +117,29 @@ bool init_resources() {
 	return true;
 }
 
-void logic() {
-	float angle = SDL_GetTicks() / 1000.0 * glm::radians(15.0);  // base 15° per second
-	glm::mat4 anim =
-		glm::rotate(glm::mat4(1.0f), angle*3.0f, glm::vec3(1, 0, 0)) *  // X axis
-		glm::rotate(glm::mat4(1.0f), angle*2.0f, glm::vec3(0, 1, 0)) *  // Y axis
-		glm::rotate(glm::mat4(1.0f), angle*4.0f, glm::vec3(0, 0, 1));   // Z axis
-	
-	glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0, 0.0, -4.0));
-	glm::mat4 view = glm::lookAt(glm::vec3(0.0, 2.0, 0.0), glm::vec3(0.0, 0.0, -4.0), glm::vec3(0.0, 1.0, 0.0));
-	glm::mat4 projection = glm::perspective(45.0f, 1.0f*screen_width/screen_height, 0.1f, 10.0f);
-	
-	glm::mat4 mvp = projection * view * model * anim;
-	glUseProgram(program);
-	glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
-}
-
 void render(SDL_Window* window) {
-	glClearColor(1.0, 1.0, 1.0, 1.0);
-	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-	
 	glUseProgram(program);
-	
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture_id);
 	glUniform1i(uniform_mytexture, /*GL_TEXTURE*/0);
 	
-	glEnableVertexAttribArray(attribute_coord3d);
+	glClearColor(1.0, 1.0, 1.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	
+	glEnableVertexAttribArray(attribute_v_coord);
 	// Describe our vertices array to OpenGL (it can't guess its format automatically)
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_cube_vertices);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_sprite_vertices);
 	glVertexAttribPointer(
-		  attribute_coord3d, // attribute
-		  3,                 // number of elements per vertex, here (x,y,z)
-		  GL_FLOAT,          // the type of each element
-		  GL_FALSE,          // take our values as-is
-		  0,                 // no extra data between each position
-		  0                  // offset of first element
+		attribute_v_coord, // attribute
+		4,                 // number of elements per vertex, here (x,y,z)
+		GL_FLOAT,          // the type of each element
+		GL_FALSE,          // take our values as-is
+		0,                 // no extra data between each position
+		0                  // offset of first element
 	);
 	
-	glEnableVertexAttribArray(attribute_texcoord);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_cube_texcoords);
+	glEnableVertexAttribArray(attribute_v_texcoord);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_sprite_texcoords);
 	glVertexAttribPointer(
-		attribute_texcoord, // attribute
+		attribute_v_texcoord, // attribute
 		2,                  // number of elements per vertex, here (x,y)
 		GL_FLOAT,           // the type of each element
 		GL_FALSE,           // take our values as-is
@@ -220,13 +148,26 @@ void render(SDL_Window* window) {
 	);
 	
 	/* Push each element in buffer_vertices to the vertex shader */
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_cube_elements);
-	int size;  glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
-	glDrawElements(GL_TRIANGLES, size/sizeof(GLushort), GL_UNSIGNED_SHORT, 0);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	
-	glDisableVertexAttribArray(attribute_coord3d);
-	glDisableVertexAttribArray(attribute_texcoord);
+	glDisableVertexAttribArray(attribute_v_coord);
+	glDisableVertexAttribArray(attribute_v_texcoord);
 	SDL_GL_SwapWindow(window);
+}
+
+void logic() {
+	float scale = SDL_GetTicks() / 1000.0 * .2;  // 20% per second
+	glm::mat4 projection = glm::ortho(0.0f, 1.0f*screen_width*scale, 1.0f*screen_height*scale, 0.0f);
+	
+	float move = 128;
+	float angle = SDL_GetTicks() / 1000.0 * 45;  // 45° per second
+	glm::vec3 axis_z(0, 0, 1);
+	glm::mat4 m_transform = glm::translate(glm::mat4(1.0f), glm::vec3(move, move, 0.0))
+		* glm::rotate(glm::mat4(1.0f), glm::radians(angle), axis_z)
+		* glm::translate(glm::mat4(1.0f), glm::vec3(-256/2, -256/2, 0.0));
+	
+	glm::mat4 mvp = projection * m_transform; // * view * model * anim;
+	glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
 }
 
 void onResize(int width, int height) {
@@ -237,10 +178,8 @@ void onResize(int width, int height) {
 
 void free_resources() {
 	glDeleteProgram(program);
-	glDeleteBuffers(1, &vbo_cube_vertices);
-	glDeleteBuffers(1, &vbo_cube_texcoords);
-	glDeleteBuffers(1, &ibo_cube_elements);
-	glDeleteTextures(1, &texture_id);
+	glDeleteBuffers(1, &vbo_sprite_vertices);
+	glDeleteBuffers(1, &vbo_sprite_texcoords);
 }
 
 void mainLoop(SDL_Window* window) {
@@ -259,7 +198,7 @@ void mainLoop(SDL_Window* window) {
 
 int main(int argc, char* argv[]) {
 	SDL_Init(SDL_INIT_VIDEO);
-	SDL_Window* window = SDL_CreateWindow("My Textured Cube",
+	SDL_Window* window = SDL_CreateWindow("My Sprites",
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 		screen_width, screen_height,
 		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
@@ -284,13 +223,13 @@ int main(int argc, char* argv[]) {
 
 	if (!init_resources())
 		return EXIT_FAILURE;
-	
+
     glEnable(GL_BLEND);
-    glEnable(GL_DEPTH_TEST);
+    //glEnable(GL_DEPTH_TEST);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+	
     mainLoop(window);
-
+	
 	free_resources();
 	return EXIT_SUCCESS;
 }
