@@ -11,31 +11,30 @@
 
 /**
  * Store all the file's contents in memory, useful to pass shaders
- * source code to OpenGL
+ * source code to OpenGL.  Using SDL_RWops for Android asset support.
  */
-char* file_read(const char* filename)
-{
-  FILE* in = fopen(filename, "rb");
-  if (in == NULL) return NULL;
+char* file_read(const char* filename) {
+	SDL_RWops *rw = SDL_RWFromFile(filename, "rb");
+	if (rw == NULL) return NULL;
+	
+	Sint64 res_size = SDL_RWsize(rw);
+	char* res = (char*)malloc(res_size + 1);
 
-  int res_size = BUFSIZ;
-  char* res = (char*)malloc(res_size);
-  int nb_read_total = 0;
-
-  while (!feof(in) && !ferror(in)) {
-    if (nb_read_total + BUFSIZ > res_size) {
-      if (res_size > 10*1024*1024) break;
-      res_size = res_size * 2;
-      res = (char*)realloc(res, res_size);
+	Sint64 nb_read_total = 0, nb_read = 1;
+	char* buf = res;
+	while (nb_read_total < res_size && nb_read != 0) {
+		nb_read = SDL_RWread(rw, buf, 1, (res_size - nb_read_total));
+		nb_read_total += nb_read;
+		buf += nb_read;
     }
-    char* p_res = res + nb_read_total;
-    nb_read_total += fread(p_res, 1, BUFSIZ, in);
-  }
-  
-  fclose(in);
-  res = (char*)realloc(res, nb_read_total + 1);
-  res[nb_read_total] = '\0';
-  return res;
+	SDL_RWclose(rw);
+	if (nb_read_total != res_size) {
+		free(res);
+		return NULL;
+	}
+	
+	res[nb_read_total] = '\0';
+	return res;
 }
 
 /**
@@ -67,13 +66,12 @@ void print_log(GLuint object)
 /**
  * Compile the shader from file 'filename', with error handling
  */
-GLuint create_shader(const char* filename, GLenum type)
-{
-  const GLchar* source = file_read(filename);
-  if (source == NULL) {
-    fprintf(stderr, "Error opening %s: ", filename); perror("");
-    return 0;
-  }
+GLuint create_shader(const char* filename, GLenum type) {
+	const GLchar* source = file_read(filename);
+	if (source == NULL) {
+		fprintf(stderr, "Error opening %s: %s\n", filename, SDL_GetError());
+		return 0;
+	}
   GLuint res = glCreateShader(type);
   const GLchar* sources[] = {
     // Define GLSL version
