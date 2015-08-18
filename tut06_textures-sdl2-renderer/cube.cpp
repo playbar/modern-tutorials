@@ -7,9 +7,11 @@
 #include <stdlib.h>
 #include <math.h>
 
-/* Using the SDL2 library for the base OpenGL init */
+/* Use glew.h instead of gl.h to get all the GL prototypes declared */
+#include <GL/glew.h>
+/* Using SDL2 for the base window and OpenGL context init */
 #include "SDL.h"
-#include "SDL_opengles2.h"
+/* Using SDL2_image to load PNG & JPG in memory */
 #include "SDL_image.h"
 
 #include "../common-sdl2/shader_utils.h"
@@ -242,7 +244,7 @@ void mainLoop(SDL_Window* window) {
 		while (SDL_PollEvent(&ev)) {
 			if (ev.type == SDL_QUIT)
 				return;
-			if (ev.type == SDL_WINDOWEVENT && ev.window.event == SDL_WINDOWEVENT_RESIZED)
+			if (ev.type == SDL_WINDOWEVENT && ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
 				onResize(ev.window.data1, ev.window.data2);
 		}
 		logic();
@@ -251,6 +253,7 @@ void mainLoop(SDL_Window* window) {
 }
 
 int main(int argc, char* argv[]) {
+	SDL_Init(SDL_INIT_VIDEO);
 	SDL_Window* window = SDL_CreateWindow("My Textured Cube",
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 		640, 480,
@@ -262,7 +265,23 @@ int main(int argc, char* argv[]) {
 	   software or d3d renderer.  We can't use our own context. */
 	renderer = SDL_CreateRenderer(window, -1, 0);
 	print_opengl_info();
+
+	/* Results as of 2015-08:
+	   - GNU/Linux: OK
+	   - woe32/wine: SDL_GL_BindTexture -> That operation is not supported
+	   - Android: texture has mixed-up color channels (blue-ish texture)
+	*/
 	
+	GLenum glew_status = glewInit();
+	if (glew_status != GLEW_OK) {
+		fprintf(stderr, "Error: glewInit: %s\n", glewGetErrorString(glew_status));
+		return 1;
+	}
+	if (!GLEW_VERSION_2_0) {
+		fprintf(stderr, "Error: your graphic card does not support OpenGL 2.0\n");
+		return 1;
+	}
+
 	if (!init_resources())
 		return 1;
 	
