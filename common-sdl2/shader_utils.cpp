@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "SDL.h"
-#include "SDL_opengles2.h"
+#include <GL/glew.h>
 
 /**
  * Store all the file's contents in memory, useful to pass shaders

@@ -5,6 +5,7 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
+
 /* Use glew.h instead of gl.h to get all the GL prototypes declared */
 #include <GL/glew.h>
 /* Using SDL2 for the base window and OpenGL context init */
@@ -128,7 +129,7 @@ int main(int argc, char* argv[]) {
 
 	GLenum glew_status = glewInit();
 	if (glew_status != GLEW_OK) {
-		fprintf(stderr, "Error: %s\n", glewGetErrorString(glew_status));
+		fprintf(stderr, "Error: glewInit: %s\n", glewGetErrorString(glew_status));
 		return 1;
 	}
 
