@@ -3,8 +3,9 @@
  * This file is in the public domain.
  * Contributors: Sylvain Beucler
  */
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdlib>
+#include <iostream>
+using namespace std;
 
 /* Use glew.h instead of gl.h to get all the GL prototypes declared */
 #include <GL/glew.h>
@@ -17,11 +18,11 @@ GLuint vbo_triangle;
 GLuint program;
 GLint attribute_coord2d;
 
-int init_resources() {
+bool init_resources() {
 	GLfloat triangle_vertices[] = {
-		0.0,  0.8,
-		-0.8, -0.8,
-		0.8, -0.8,
+	    0.0,  0.8,
+	   -0.8, -0.8,
+	    0.8, -0.8,
 	};
 	glGenBuffers(1, &vbo_triangle);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle);
@@ -30,8 +31,8 @@ int init_resources() {
 	GLint link_ok = GL_FALSE;
 	
 	GLuint vs, fs;
-	if ((vs = create_shader("triangle.v.glsl", GL_VERTEX_SHADER))   == 0) return 0;
-	if ((fs = create_shader("triangle.f.glsl", GL_FRAGMENT_SHADER)) == 0) return 0;
+	if ((vs = create_shader("triangle.v.glsl", GL_VERTEX_SHADER))   == 0) return false;
+	if ((fs = create_shader("triangle.f.glsl", GL_FRAGMENT_SHADER)) == 0) return false;
 	
 	program = glCreateProgram();
 	glAttachShader(program, vs);
@@ -39,19 +40,19 @@ int init_resources() {
 	glLinkProgram(program);
 	glGetProgramiv(program, GL_LINK_STATUS, &link_ok);
 	if (!link_ok) {
-		fprintf(stderr, "glLinkProgram:");
+		cerr << "glLinkProgram:";
 		print_log(program);
-		return 0;
+		return false;
 	}
 	
 	const char* attribute_name = "coord2d";
 	attribute_coord2d = glGetAttribLocation(program, attribute_name);
 	if (attribute_coord2d == -1) {
 		fprintf(stderr, "Could not bind attribute %s\n", attribute_name);
-		return 0;
+		return false;
 	}
 	
-	return 1;
+	return true;
 }
 
 void render(SDL_Window* window) {
@@ -100,27 +101,28 @@ int main(int argc, char* argv[]) {
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 		640, 480,
 		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
-
+	
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
 	//SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 	//SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 1);
 	if (SDL_GL_CreateContext(window) == NULL) {
-		fprintf(stderr, "Error: SDL_GL_CreateContext: %s\n", SDL_GetError());
+		cerr << "Error: SDL_GL_CreateContext: " << SDL_GetError() << endl;
 		return 1;
 	}
 
 	GLenum glew_status = glewInit();
 	if (glew_status != GLEW_OK) {
-		fprintf(stderr, "Error: glewInit: %s\n", glewGetErrorString(glew_status));
-		return 1;
+		cerr << "Error: glewInit: "  << glewGetErrorString(glew_status) << endl;
+		return EXIT_FAILURE;
 	}
 	if (!GLEW_VERSION_2_0) {
-		fprintf(stderr, "Error: your graphic card does not support OpenGL 2.0\n");
-		return 1;
+		cerr << "Error: your graphic card does not support OpenGL 2.0" << endl;
+		return EXIT_FAILURE;
 	}
 
 	if (!init_resources())
-		return 1;
+		return EXIT_FAILURE;
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -128,5 +130,5 @@ int main(int argc, char* argv[]) {
 	mainLoop(window);
 	
 	free_resources();
-	return 0;
+	return EXIT_SUCCESS;
 }

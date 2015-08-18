@@ -4,8 +4,9 @@
  * Contributors: Sylvain Beucler
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <iostream>
+using namespace std;
+
 #include "SDL.h"
 #include <GL/glew.h>
 
@@ -26,7 +27,7 @@ char* file_read(const char* filename) {
 		nb_read = SDL_RWread(rw, buf, 1, (res_size - nb_read_total));
 		nb_read_total += nb_read;
 		buf += nb_read;
-    }
+	}
 	SDL_RWclose(rw);
 	if (nb_read_total != res_size) {
 		free(res);
@@ -40,27 +41,26 @@ char* file_read(const char* filename) {
 /**
  * Display compilation errors from the OpenGL shader compiler
  */
-void print_log(GLuint object)
-{
-  GLint log_length = 0;
-  if (glIsShader(object))
-    glGetShaderiv(object, GL_INFO_LOG_LENGTH, &log_length);
-  else if (glIsProgram(object))
-    glGetProgramiv(object, GL_INFO_LOG_LENGTH, &log_length);
-  else {
-    fprintf(stderr, "printlog: Not a shader or a program\n");
-    return;
-  }
+void print_log(GLuint object) {
+	GLint log_length = 0;
+	if (glIsShader(object)) {
+		glGetShaderiv(object, GL_INFO_LOG_LENGTH, &log_length);
+	} else if (glIsProgram(object)) {
+		glGetProgramiv(object, GL_INFO_LOG_LENGTH, &log_length);
+	} else {
+		cerr << "printlog: Not a shader or a program" << endl;
+		return;
+	}
 
-  char* log = (char*)malloc(log_length);
-
-  if (glIsShader(object))
-    glGetShaderInfoLog(object, log_length, NULL, log);
-  else if (glIsProgram(object))
-    glGetProgramInfoLog(object, log_length, NULL, log);
-
-  fprintf(stderr, "%s", log);
-  free(log);
+	char* log = (char*)malloc(log_length);
+	
+	if (glIsShader(object))
+		glGetShaderInfoLog(object, log_length, NULL, log);
+	else if (glIsProgram(object))
+		glGetProgramInfoLog(object, log_length, NULL, log);
+	
+	cerr << log;
+	free(log);
 }
 
 /**
@@ -69,52 +69,52 @@ void print_log(GLuint object)
 GLuint create_shader(const char* filename, GLenum type) {
 	const GLchar* source = file_read(filename);
 	if (source == NULL) {
-		fprintf(stderr, "Error opening %s: %s\n", filename, SDL_GetError());
+		cerr << "Error opening " << filename << ": " << SDL_GetError() << endl;
 		return 0;
 	}
-  GLuint res = glCreateShader(type);
-  const GLchar* sources[] = {
-    // Define GLSL version
+	GLuint res = glCreateShader(type);
+	const GLchar* sources[] = {
+		// Define GLSL version
 #ifdef GL_ES_VERSION_2_0
-    "#version 100\n"
+		"#version 100\n"
 #else
-    "#version 120\n"
+		"#version 120\n"
 #endif
-    ,
-    // GLES2 precision specifiers
+		,
+		// GLES2 precision specifiers
 #ifdef GL_ES_VERSION_2_0
-    // Define default float precision for fragment shaders:
-    (type == GL_FRAGMENT_SHADER) ?
-    "#ifdef GL_FRAGMENT_PRECISION_HIGH\n"
-    "precision highp float;           \n"
-    "#else                            \n"
-    "precision mediump float;         \n"
-    "#endif                           \n"
-    : ""
-    // Note: OpenGL ES automatically defines this:
-    // #define GL_ES
+		// Define default float precision for fragment shaders:
+		(type == GL_FRAGMENT_SHADER) ?
+		"#ifdef GL_FRAGMENT_PRECISION_HIGH\n"
+		"precision highp float;           \n"
+		"#else                            \n"
+		"precision mediump float;         \n"
+		"#endif                           \n"
+		: ""
+		// Note: OpenGL ES automatically defines this:
+		// #define GL_ES
 #else
-    // Ignore GLES 2 precision specifiers:
-    "#define lowp   \n"
-    "#define mediump\n"
-    "#define highp  \n"
+		// Ignore GLES 2 precision specifiers:
+		"#define lowp   \n"
+		"#define mediump\n"
+		"#define highp  \n"
 #endif
-    ,
-    source };
-  glShaderSource(res, 3, sources, NULL);
-  free((void*)source);
-
-  glCompileShader(res);
-  GLint compile_ok = GL_FALSE;
-  glGetShaderiv(res, GL_COMPILE_STATUS, &compile_ok);
-  if (compile_ok == GL_FALSE) {
-    fprintf(stderr, "%s:", filename);
-    print_log(res);
-    glDeleteShader(res);
-    return 0;
-  }
-
-  return res;
+		,
+		source };
+	glShaderSource(res, 3, sources, NULL);
+	free((void*)source);
+	
+	glCompileShader(res);
+	GLint compile_ok = GL_FALSE;
+	glGetShaderiv(res, GL_COMPILE_STATUS, &compile_ok);
+	if (compile_ok == GL_FALSE) {
+		cerr << filename << ":";
+		print_log(res);
+		glDeleteShader(res);
+		return 0;
+	}
+	
+	return res;
 }
 
 GLuint create_program(const char *vertexfile, const char *fragmentfile) {
