@@ -48,7 +48,8 @@ void print_log(GLuint object) {
 	} else if (glIsProgram(object)) {
 		glGetProgramiv(object, GL_INFO_LOG_LENGTH, &log_length);
 	} else {
-		cerr << "printlog: Not a shader or a program" << endl;
+		SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_ERROR,
+					   "printlog: Not a shader or a program");
 		return;
 	}
 
@@ -59,7 +60,7 @@ void print_log(GLuint object) {
 	else if (glIsProgram(object))
 		glGetProgramInfoLog(object, log_length, NULL, log);
 	
-	cerr << log;
+	SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_ERROR, "%s\n", log);
 	free(log);
 }
 
@@ -69,7 +70,8 @@ void print_log(GLuint object) {
 GLuint create_shader(const char* filename, GLenum type) {
 	const GLchar* source = file_read(filename);
 	if (source == NULL) {
-		cerr << "Error opening " << filename << ": " << SDL_GetError() << endl;
+		SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_ERROR,
+					   "Error opening %s: %s", filename, SDL_GetError());
 		return 0;
 	}
 	GLuint res = glCreateShader(type);
@@ -108,7 +110,7 @@ GLuint create_shader(const char* filename, GLenum type) {
 	GLint compile_ok = GL_FALSE;
 	glGetShaderiv(res, GL_COMPILE_STATUS, &compile_ok);
 	if (compile_ok == GL_FALSE) {
-		cerr << filename << ":";
+		SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_ERROR, "%s:\n", filename);
 		print_log(res);
 		glDeleteShader(res);
 		return 0;
@@ -139,7 +141,7 @@ GLuint create_program(const char *vertexfile, const char *fragmentfile) {
 	GLint link_ok = GL_FALSE;
 	glGetProgramiv(program, GL_LINK_STATUS, &link_ok);
 	if (!link_ok) {
-		fprintf(stderr, "glLinkProgram:");
+		SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO, "glLinkProgram:");
 		print_log(program);
 		glDeleteProgram(program);
 		return 0;
@@ -182,7 +184,7 @@ GLuint create_gs_program(const char *vertexfile, const char *geometryfile, const
 	GLint link_ok = GL_FALSE;
 	glGetProgramiv(program, GL_LINK_STATUS, &link_ok);
 	if (!link_ok) {
-		fprintf(stderr, "glLinkProgram:");
+        SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_ERROR, "glLinkProgram:");
 		print_log(program);
 		glDeleteProgram(program);
 		return 0;
@@ -192,7 +194,8 @@ GLuint create_gs_program(const char *vertexfile, const char *geometryfile, const
 }
 #else
 GLuint create_gs_program(const char *vertexfile, const char *geometryfile, const char *fragmentfile, GLint input, GLint output, GLint vertices) {
-	fprintf(stderr, "Missing support for geometry shaders.\n");
+	SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_ERROR,
+				   "Missing support for geometry shaders.");
 	return 0;
 }
 #endif
@@ -200,14 +203,16 @@ GLuint create_gs_program(const char *vertexfile, const char *geometryfile, const
 GLint get_attrib(GLuint program, const char *name) {
 	GLint attribute = glGetAttribLocation(program, name);
 	if(attribute == -1)
-		fprintf(stderr, "Could not bind attribute %s\n", name);
+		SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_ERROR,
+					   "Could not bind attribute %s", name);
 	return attribute;
 }
 
 GLint get_uniform(GLuint program, const char *name) {
 	GLint uniform = glGetUniformLocation(program, name);
 	if(uniform == -1)
-		fprintf(stderr, "Could not bind uniform %s\n", name);
+		SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_ERROR,
+					   "Could not bind uniform %s", name);
 	return uniform;
 }
 
@@ -216,13 +221,14 @@ void print_opengl_info() {
 	SDL_GL_GetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, &major);
 	SDL_GL_GetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, &minor);
 	SDL_GL_GetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, &profile);
-	printf("OpenGL %d.%d ", major, minor, profile);
-	
+	const char* profile_str = "";
 	if (profile & SDL_GL_CONTEXT_PROFILE_CORE)
-		printf("CORE ");
+		profile_str = "CORE";
 	if (profile & SDL_GL_CONTEXT_PROFILE_COMPATIBILITY)
-		printf("COMPATIBILITY ");
+		profile_str = "COMPATIBILITY";
 	if (profile & SDL_GL_CONTEXT_PROFILE_ES)
-		printf("ES ");
-	printf("\n");
+		profile_str = "ES";
+
+	SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO,
+				   "OpenGL %d.%d %s", major, minor, profile_str);
 }
