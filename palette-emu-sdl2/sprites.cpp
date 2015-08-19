@@ -25,9 +25,10 @@ using namespace std;
 int screen_width=800, screen_height=600;
 GLuint vbo_sprite_vertices, vbo_sprite_texcoords;
 GLuint program;
-GLuint palette_id, texture_id;
+GLuint palette_id, texture_id, texture2_id;
 GLint attribute_v_coord, attribute_v_texcoord;
-GLint uniform_mvp, uniform_mypalette, uniform_mytexture;
+GLint uniform_mvp, uniform_mypalette, uniform_mytexture, uniform_colorkey;
+glm::mat4 mvp_background, mvp_player;
 
 bool init_resources() {
 	GLfloat sprite_vertices[] = {
@@ -50,8 +51,8 @@ bool init_resources() {
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_sprite_texcoords);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(sprite_texcoords), sprite_texcoords, GL_STATIC_DRAW);
 	
-	SDL_Surface* res_texture = IMG_Load("Ts01.bmp");
-	if (res_texture == NULL) {
+	SDL_Surface* surface = IMG_Load("Ts01.bmp");
+	if (surface == NULL) {
 		cerr << "IMG_Load: " << SDL_GetError() << endl;
 		return false;
 	}
@@ -70,7 +71,7 @@ bool init_resources() {
 		0,	// border, always 0 in OpenGL ES
 		GL_RGBA,	 // format
 		GL_UNSIGNED_BYTE, // type
-		res_texture->format->palette->colors);
+		surface->format->palette->colors);
 
 	glGenTextures(1, &texture_id);
 	glBindTexture(GL_TEXTURE_2D, texture_id);
@@ -81,14 +82,38 @@ bool init_resources() {
 	glTexImage2D(GL_TEXTURE_2D, // target
 		0,	// level, 0 = base, no minimap,
 		GL_LUMINANCE, // internalformat
-		res_texture->w,	// width
-		res_texture->h,	// height
+		surface->w,	// width
+		surface->h,	// height
 		0,	// border, always 0 in OpenGL ES
 		GL_LUMINANCE,	 // format
 		GL_UNSIGNED_BYTE, // type
-		res_texture->pixels);
+		surface->pixels);
 	
-	SDL_FreeSurface(res_texture);
+	SDL_FreeSurface(surface);
+
+
+	surface = IMG_Load("dinkm-01.bmp");
+	if (surface == NULL) {
+		cerr << "IMG_Load: " << SDL_GetError() << endl;
+		return false;
+	}
+	glGenTextures(1, &texture2_id);
+	glBindTexture(GL_TEXTURE_2D, texture2_id);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexImage2D(GL_TEXTURE_2D, // target
+		0,	// level, 0 = base, no minimap,
+		GL_LUMINANCE, // internalformat
+		surface->w,	// width
+		surface->h,	// height
+		0,	// border, always 0 in OpenGL ES
+		GL_LUMINANCE,	 // format
+		GL_UNSIGNED_BYTE, // type
+		surface->pixels);
+	SDL_FreeSurface(surface);
+
 	
 	GLint link_ok = GL_FALSE;
 	
@@ -131,13 +156,19 @@ bool init_resources() {
 	uniform_mypalette = glGetUniformLocation(program, uniform_name);
 	if (uniform_mypalette == -1) {
 		cerr << "Could not bind uniform " << uniform_name << endl;
-		// return false;
+		return false;
 	}
 	uniform_name = "mytexture";
 	uniform_mytexture = glGetUniformLocation(program, uniform_name);
 	if (uniform_mytexture == -1) {
 		cerr << "Could not bind uniform " << uniform_name << endl;
-		// return false;
+		return false;
+	}
+	uniform_name = "colorkey";
+	uniform_colorkey = glGetUniformLocation(program, uniform_name);
+	if (uniform_colorkey == -1) {
+		cerr << "Could not bind uniform " << uniform_name << endl;
+		return false;
 	}
 	
 	return true;
@@ -150,17 +181,26 @@ void logic() {
 	float move = 128;
 	float angle = SDL_GetTicks() / 1000.0 * 45;  // 45° per second
 	glm::vec3 axis_z(0, 0, 1);
-	glm::mat4 m_transform = glm::translate(glm::mat4(1.0f), glm::vec3(move, move, 0.0))
+	glm::mat4 m_transform;
+	m_transform= glm::translate(glm::mat4(1), glm::vec3(0.375, 0.375, 0.))
+		* glm::translate(glm::mat4(1.0f), glm::vec3(move, move, 0.0))
 		* glm::rotate(glm::mat4(1.0f), glm::radians(angle), axis_z)
 		* glm::translate(glm::mat4(1.0f), glm::vec3(-256/2, -256/2, 0.0));
-	
-	glm::mat4 mvp = projection * m_transform; // * view * model * anim;
-	glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
+	mvp_background = projection * m_transform; // * view * model * anim;
+
+	m_transform = glm::translate(glm::mat4(1), glm::vec3(0.375, 0.375, 0.))
+		* glm::translate(glm::mat4(1.0f), glm::vec3(move, move, 0.0))
+		* glm::rotate(glm::mat4(1.0f), -glm::radians(angle), axis_z)
+		* glm::translate(glm::mat4(1.0f), glm::vec3(-256/2, -256/2, 0.0));
+	mvp_player = projection * m_transform; // * view * model * anim;
 }
 
 void render(SDL_Window* window) {
 	glUseProgram(program);
 
+	glClearColor(1.0, 0.1, 1.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	
     glActiveTexture(GL_TEXTURE0);
 	glUniform1i(uniform_mypalette, /*GL_TEXTURE*/0);
 	glBindTexture(GL_TEXTURE_2D, palette_id);
@@ -168,10 +208,7 @@ void render(SDL_Window* window) {
     glActiveTexture(GL_TEXTURE1);
 	glUniform1i(uniform_mytexture, /*GL_TEXTURE*/1);
 	glBindTexture(GL_TEXTURE_2D, texture_id);
-	
-	glClearColor(1.0, 1.0, 1.0, 1.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
+
 	glEnableVertexAttribArray(attribute_v_coord);
 	// Describe our vertices array to OpenGL (it can't guess its format automatically)
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_sprite_vertices);
@@ -196,8 +233,18 @@ void render(SDL_Window* window) {
 	);
 	
 	/* Push each element in buffer_vertices to the vertex shader */
+	glUniform1i(uniform_colorkey, -1);
+	glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp_background));
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	
+
+    glActiveTexture(GL_TEXTURE1);
+	glUniform1i(uniform_mytexture, /*GL_TEXTURE*/1);
+	glBindTexture(GL_TEXTURE_2D, texture2_id);
+	glUniform1i(uniform_colorkey, 0);
+	glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp_player));
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
 	glDisableVertexAttribArray(attribute_v_coord);
 	glDisableVertexAttribArray(attribute_v_texcoord);
 	SDL_GL_SwapWindow(window);
