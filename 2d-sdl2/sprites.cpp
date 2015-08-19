@@ -25,6 +25,7 @@ using namespace std;
 int screen_width=800, screen_height=600;
 GLuint vbo_sprite_vertices, vbo_sprite_texcoords;
 GLuint program;
+GLuint texture_id;
 GLint attribute_v_coord, attribute_v_texcoord;
 GLint uniform_mvp, uniform_mytexture;
 
@@ -54,9 +55,7 @@ bool init_resources() {
 		cerr << "IMG_Load: " << SDL_GetError() << endl;
 		return false;
 	}
-	GLuint texture_id;
 	glGenTextures(1, &texture_id);
-	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture_id);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexImage2D(GL_TEXTURE_2D, // target
@@ -117,9 +116,27 @@ bool init_resources() {
 	return true;
 }
 
+void logic() {
+	float scale = SDL_GetTicks() / 1000.0 * .2;  // 20% per second
+	glm::mat4 projection = glm::ortho(0.0f, 1.0f*screen_width*scale, 1.0f*screen_height*scale, 0.0f);
+	
+	float move = 128;
+	float angle = SDL_GetTicks() / 1000.0 * 45;  // 45° per second
+	glm::vec3 axis_z(0, 0, 1);
+	glm::mat4 m_transform = glm::translate(glm::mat4(1.0f), glm::vec3(move, move, 0.0))
+		* glm::rotate(glm::mat4(1.0f), glm::radians(angle), axis_z)
+		* glm::translate(glm::mat4(1.0f), glm::vec3(-256/2, -256/2, 0.0));
+	
+	glm::mat4 mvp = projection * m_transform; // * view * model * anim;
+	glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
+}
+
 void render(SDL_Window* window) {
 	glUseProgram(program);
+	
+	glActiveTexture(GL_TEXTURE0);
 	glUniform1i(uniform_mytexture, /*GL_TEXTURE*/0);
+	glBindTexture(GL_TEXTURE_2D, texture_id);
 	
 	glClearColor(1.0, 1.0, 1.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -153,21 +170,6 @@ void render(SDL_Window* window) {
 	glDisableVertexAttribArray(attribute_v_coord);
 	glDisableVertexAttribArray(attribute_v_texcoord);
 	SDL_GL_SwapWindow(window);
-}
-
-void logic() {
-	float scale = SDL_GetTicks() / 1000.0 * .2;  // 20% per second
-	glm::mat4 projection = glm::ortho(0.0f, 1.0f*screen_width*scale, 1.0f*screen_height*scale, 0.0f);
-	
-	float move = 128;
-	float angle = SDL_GetTicks() / 1000.0 * 45;  // 45° per second
-	glm::vec3 axis_z(0, 0, 1);
-	glm::mat4 m_transform = glm::translate(glm::mat4(1.0f), glm::vec3(move, move, 0.0))
-		* glm::rotate(glm::mat4(1.0f), glm::radians(angle), axis_z)
-		* glm::translate(glm::mat4(1.0f), glm::vec3(-256/2, -256/2, 0.0));
-	
-	glm::mat4 mvp = projection * m_transform; // * view * model * anim;
-	glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
 }
 
 void onResize(int width, int height) {

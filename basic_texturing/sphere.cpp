@@ -236,12 +236,12 @@ void draw()
   glUseProgram(program);
 
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, mytexture_id);
   glUniform1i(uniform_mytexture, /*GL_TEXTURE*/0);
+  glBindTexture(GL_TEXTURE_2D, mytexture_id);
 
   glActiveTexture(GL_TEXTURE1);
-  glBindTexture(GL_TEXTURE_2D, mytexture_sunlit_id);
   glUniform1i(uniform_mytexture_sunlit, /*GL_TEXTURE*/1);
+  glBindTexture(GL_TEXTURE_2D, mytexture_sunlit_id);
 
   // To be used when FreeGLUT 3.0.0 is out :)
   // glutSetVertexAttribCoord3(attribute_v_coord);

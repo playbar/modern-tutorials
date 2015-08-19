@@ -193,8 +193,8 @@ void render(SDL_Window* window) {
 	glUseProgram(program);
 	
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture_id);
 	glUniform1i(uniform_mytexture, /*GL_TEXTURE*/0);
+	glBindTexture(GL_TEXTURE_2D, texture_id);
 	
 	glEnableVertexAttribArray(attribute_coord3d);
 	// Describe our vertices array to OpenGL (it can't guess its format automatically)
