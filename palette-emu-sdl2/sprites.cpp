@@ -33,9 +33,9 @@ glm::mat4 mvp_background, mvp_player;
 bool init_resources() {
 	GLfloat sprite_vertices[] = {
 	    0,    0, 0, 1,
-	  256,    0, 0, 1,
-	    0,  256, 0, 1,
-	  256,  256, 0, 1,
+	    1,    0, 0, 1,
+	    0,    1, 0, 1,
+	    1,    1, 0, 1,
 	};
 	glGenBuffers(1, &vbo_sprite_vertices);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_sprite_vertices);
@@ -175,24 +175,38 @@ bool init_resources() {
 }
 
 void logic() {
-	float scale = SDL_GetTicks() / 1000.0 * .2;  // 20% per second
-	glm::mat4 projection = glm::ortho(0.0f, 1.0f*screen_width*scale, 1.0f*screen_height*scale, 0.0f);
+	float scale = sinf(SDL_GetTicks() / 1000.0) + 1;
+	glm::mat4 projection = glm::ortho(0.0f, 1.0f*screen_width, 1.0f*screen_height, 0.0f);
 	
-	float move = 128;
+	float move = screen_height/2;
 	float angle = SDL_GetTicks() / 1000.0 * 45;  // 45° per second
 	glm::vec3 axis_z(0, 0, 1);
 	glm::mat4 m_transform;
-	m_transform= glm::translate(glm::mat4(1), glm::vec3(0.375, 0.375, 0.))
+	m_transform = glm::translate(glm::mat4(1), glm::vec3(0.375, 0.375, 0.))
 		* glm::translate(glm::mat4(1.0f), glm::vec3(move, move, 0.0))
+		* glm::scale(glm::mat4(1.0f), glm::vec3(scale, scale, 0.0))
 		* glm::rotate(glm::mat4(1.0f), glm::radians(angle), axis_z)
-		* glm::translate(glm::mat4(1.0f), glm::vec3(-256/2, -256/2, 0.0));
+		* glm::translate(glm::mat4(1.0f), glm::vec3(-400/2, -400/2, 0.0))
+		* glm::scale(glm::mat4(1.0f), glm::vec3(400.0, 400.0, 0.0));
 	mvp_background = projection * m_transform; // * view * model * anim;
 
 	m_transform = glm::translate(glm::mat4(1), glm::vec3(0.375, 0.375, 0.))
 		* glm::translate(glm::mat4(1.0f), glm::vec3(move, move, 0.0))
 		* glm::rotate(glm::mat4(1.0f), -glm::radians(angle), axis_z)
-		* glm::translate(glm::mat4(1.0f), glm::vec3(-256/2, -256/2, 0.0));
+		* glm::translate(glm::mat4(1.0f), glm::vec3(-100/2, -100/2, 0.0))
+		* glm::scale(glm::mat4(1.0f), glm::vec3(100.0, 100.0, 0.0));
 	mvp_player = projection * m_transform; // * view * model * anim;
+
+	static Uint32 fps = 0;
+	static Uint32 last_ticks = 0;
+	fps++;
+	if ((SDL_GetTicks() - last_ticks) > 1000) {
+		SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO,
+					   "FPS: %d", fps);
+		fps = 0;
+		last_ticks = SDL_GetTicks();
+	}
+
 }
 
 void render(SDL_Window* window) {
@@ -293,7 +307,8 @@ int main(int argc, char* argv[]) {
 		cerr << "Error: SDL_GL_CreateContext: " << SDL_GetError() << endl;
 		return EXIT_FAILURE;
 	}
-
+	//SDL_GL_SetSwapInterval(0);
+	
 	GLenum glew_status = glewInit();
 	if (glew_status != GLEW_OK) {
 		cerr << "Error: glewInit: " << glewGetErrorString(glew_status) << endl;
