@@ -40,6 +40,7 @@ int init_resources() {
 	uniform_vertex_transform = get_uniform(program, "vertex_transform");
 	uniform_texture_transform = get_uniform(program, "texture_transform");
 	uniform_mytexture = get_uniform(program, "mytexture");
+	uniform_color = get_uniform(program, "color");
 
 	if (attribute_coord2d == -1 || uniform_vertex_transform == -1 || uniform_texture_transform == -1 || uniform_mytexture == -1)
 		return 0;
@@ -83,10 +84,10 @@ int init_resources() {
 	glBufferData(GL_ARRAY_BUFFER, sizeof vertices, vertices, GL_STATIC_DRAW);
 
 	// Create an array of indices into the vertex array that traces both horizontal and vertical lines
-	GLushort indices[100 * 101 * 6];
+	GLushort indices[100 * 100 * 6];
 	int i = 0;
 
-	for (int y = 0; y < 100; y++) {
+	for (int y = 0; y < 101; y++) {
 		for (int x = 0; x < 100; x++) {
 			indices[i++] = y * 101 + x;
 			indices[i++] = y * 101 + x + 1;
@@ -106,7 +107,7 @@ int init_resources() {
 	// Create another array of indices that describes all the triangles needed to create a completely filled surface
 	i = 0;
 
-	for (int y = 0; y < 101; y++) {
+	for (int y = 0; y < 100; y++) {
 		for (int x = 0; x < 100; x++) {
 			indices[i++] = y * 101 + x;
 			indices[i++] = y * 101 + x + 1;
