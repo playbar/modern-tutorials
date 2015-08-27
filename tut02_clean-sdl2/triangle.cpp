@@ -101,6 +101,10 @@ int main(int argc, char* argv[]) {
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 		640, 480,
 		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
+	if (window == NULL) {
+		cerr << "Error: can't create window: " << SDL_GetError() << endl;
+		return EXIT_FAILURE;
+	}
 	
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
 	//SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
