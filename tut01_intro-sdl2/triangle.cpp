@@ -132,10 +132,6 @@ int main(int argc, char* argv[]) {
 		640, 480,
 		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
 	SDL_GL_CreateContext(window);
-	if (window == NULL) {
-		cerr << "Error: can't create window: " << SDL_GetError() << endl;
-		return EXIT_FAILURE;
-	}
 	
 	/* Extension wrangler initialising */
 	GLenum glew_status = glewInit();
