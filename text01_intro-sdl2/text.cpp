@@ -21,6 +21,7 @@ using namespace std;
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
+int screen_width=800, screen_height=600;
 GLuint program;
 GLint attribute_coord;
 GLint uniform_tex;
@@ -139,10 +140,8 @@ void render_text(const char *text, float x, float y, float sx, float sy) {
 }
 
 void render(SDL_Window* window) {
-	int w, h;
-	SDL_GetWindowSize(window, &w, &h);
-	float sx = 2.0 / w;
-	float sy = 2.0 / h;
+	float sx = 2.0 / screen_width;
+	float sy = 2.0 / screen_height;
 
 	glUseProgram(program);
 
@@ -190,6 +189,13 @@ void render(SDL_Window* window) {
 	SDL_GL_SwapWindow(window);
 }
 
+void onResize(int width, int height) {
+	screen_width = width;
+	screen_height = height;
+	glViewport(0, 0, screen_width, screen_height);
+
+}
+
 void free_resources() {
 	glDeleteProgram(program);
 }
@@ -200,6 +206,8 @@ void mainLoop(SDL_Window* window) {
 		while (SDL_PollEvent(&ev)) {
 			if (ev.type == SDL_QUIT)
 				return;
+			if (ev.type == SDL_WINDOWEVENT && ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
+				onResize(ev.window.data1, ev.window.data2);
 		}
 		render(window);
 	}
@@ -209,7 +217,7 @@ int main(int argc, char *argv[]) {
 	SDL_Init(SDL_INIT_VIDEO);
 	SDL_Window* window = SDL_CreateWindow("Basic Text",
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-		640, 480,
+		screen_width, screen_height,
 		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
