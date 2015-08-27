@@ -20,6 +20,9 @@ ln -nfs ../tutXXX-sdl2 assets
 ln -nfs .../glm jni/src/
 echo 'APP_STL := stlport_static' >> jni/Application.mk
 
+# FreeType
+# Follow https://en.wikibooks.org/wiki/OpenGL_Programming/Installation/Android_NDK#FreeType
+
 # Edit jni/src/Android.mk:
 #LOCAL_SRC_FILES := $(SDL_PATH)/src/main/android/SDL_android_main.c \
 #	GL/glew.c ../common-sdl2/shader_utils.cpp \
