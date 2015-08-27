@@ -14,7 +14,7 @@ using namespace std;
  * Store all the file's contents in memory, useful to pass shaders
  * source code to OpenGL.  Using SDL_RWops for Android asset support.
  */
-char* file_read(const char* filename) {
+char* file_read(const char* filename, int* size) {
 	SDL_RWops *rw = SDL_RWFromFile(filename, "rb");
 	if (rw == NULL) return NULL;
 	
@@ -35,6 +35,8 @@ char* file_read(const char* filename) {
 	}
 	
 	res[nb_read_total] = '\0';
+	if (size != NULL)
+		*size = nb_read_total;
 	return res;
 }
 
@@ -68,7 +70,7 @@ void print_log(GLuint object) {
  * Compile the shader from file 'filename', with error handling
  */
 GLuint create_shader(const char* filename, GLenum type) {
-	const GLchar* source = file_read(filename);
+	const GLchar* source = file_read(filename, NULL);
 	if (source == NULL) {
 		SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_ERROR,
 					   "Error opening %s: %s", filename, SDL_GetError());

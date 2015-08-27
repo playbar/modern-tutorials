@@ -7,7 +7,7 @@
 #define _CREATE_SHADER_H
 #include <GL/glew.h>
 
-extern char* file_read(const char* filename);
+extern char* file_read(const char* filename, int* size);
 extern void print_log(GLuint object);
 extern GLuint create_shader(const char* filename, GLenum type);
 extern GLuint create_program(const char* vertexfile, const char *fragmentfile);

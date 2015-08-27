@@ -49,8 +49,15 @@ bool init_resources() {
 	}
 
 	/* Load a font */
-	if (FT_New_Face(ft, fontfilename, 0, &face)) {
-		cerr << "Could not open font %s" << endl;
+	int fontsize;
+	char* font = file_read(fontfilename, &fontsize);
+	if (font == NULL) {
+		cerr << "Could not load font file " << fontfilename << endl;
+		return false;
+	}
+	FT_Error fterr = FT_New_Memory_Face(ft, (FT_Byte*)font, fontsize, 0, &face);
+	if (fterr != FT_Err_Ok) {
+		cerr << "Could not init font: error 0x" << hex << fterr << endl;
 		return false;
 	}
 
