@@ -5,8 +5,8 @@
  */
 #include <cstdlib>
 #include <iostream>
-#include <fstream>
 #include <sstream>
+#include <string>
 #include <vector>
 using namespace std;
 
@@ -78,21 +78,21 @@ public:
 			glGenBuffers(1, &this->vbo_vertices);
 			glBindBuffer(GL_ARRAY_BUFFER, this->vbo_vertices);
 			glBufferData(GL_ARRAY_BUFFER, this->vertices.size() * sizeof(this->vertices[0]),
-						 this->vertices.data(), GL_STATIC_DRAW);
+						 &this->vertices[0], GL_STATIC_DRAW);
 		}
     
 		if (this->normals.size() > 0) {
 			glGenBuffers(1, &this->vbo_normals);
 			glBindBuffer(GL_ARRAY_BUFFER, this->vbo_normals);
 			glBufferData(GL_ARRAY_BUFFER, this->normals.size() * sizeof(this->normals[0]),
-						 this->normals.data(), GL_STATIC_DRAW);
+						 &this->normals[0], GL_STATIC_DRAW);
 		}
     
 		if (this->elements.size() > 0) {
 			glGenBuffers(1, &this->ibo_elements);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->ibo_elements);
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->elements.size() * sizeof(this->elements[0]),
-						 this->elements.data(), GL_STATIC_DRAW);
+						 &this->elements[0], GL_STATIC_DRAW);
 		}
 	}
 
@@ -231,9 +231,13 @@ public:
 Mesh ground, main_object, light_bbox;
 
 
-void load_obj(const char* filename, Mesh* mesh) {
-	ifstream in(filename, ios::in);
-	if (!in) { cerr << "Cannot open " << filename << endl; exit(1); }
+bool load_obj(const char* filename, Mesh* mesh) {
+	char* obj = file_read(filename, NULL);
+	if (obj == NULL) {
+		cerr << "Could not load OBJ file " << filename << endl;
+		return false;
+	}
+	stringstream in(obj, ios::in);
 	vector<int> nb_seen;
 	
 	string line;
@@ -281,10 +285,13 @@ void load_obj(const char* filename, Mesh* mesh) {
 			}
 		}
 	}
+
+	return true;
 }
 
 bool init_resources(char* model_filename, char* vshader_filename, char* fshader_filename) {
-	load_obj(model_filename, &main_object);
+	if (!load_obj(model_filename, &main_object))
+		return false;
 	// mesh position initialized in init_view()
 	
 	for (int i = -GROUND_SIZE/2; i < GROUND_SIZE/2; i++) {
