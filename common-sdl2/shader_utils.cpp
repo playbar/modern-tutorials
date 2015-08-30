@@ -77,34 +77,37 @@ GLuint create_shader(const char* filename, GLenum type) {
 		return 0;
 	}
 	GLuint res = glCreateShader(type);
+
+	// GLSL version
+	const char* version;
+	int profile;
+	SDL_GL_GetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, &profile);
+	if (profile == SDL_GL_CONTEXT_PROFILE_ES)
+		version = "#version 100\n";  // OpenGL ES 2.0
+	else
+		version = "#version 120\n";  // OpenGL 2.1
+
+	// GLES2 precision specifiers
+	const char* precision;
+	precision =
+		"#ifdef GL_ES                        \n"
+		"#  ifdef GL_FRAGMENT_PRECISION_HIGH \n"
+		"     precision highp float;         \n"
+		"#  else                             \n"
+		"     precision mediump float;       \n"
+		"#  endif                            \n"
+		"#else                               \n"
+		// Ignore unsupported precision specifiers
+		"#  define lowp                      \n"
+		"#  define mediump                   \n"
+		"#  define highp                     \n"
+		"#endif                              \n";
+
 	const GLchar* sources[] = {
-		// Define GLSL version
-#ifdef GL_ES_VERSION_2_0
-		"#version 100\n"  // OpenGL ES 2.0
-#else
-		"#version 120\n"  // OpenGL 2.1
-#endif
-		,
-		// GLES2 precision specifiers
-#ifdef GL_ES_VERSION_2_0
-		// Define default float precision for fragment shaders:
-		(type == GL_FRAGMENT_SHADER) ?
-		"#ifdef GL_FRAGMENT_PRECISION_HIGH\n"
-		"precision highp float;           \n"
-		"#else                            \n"
-		"precision mediump float;         \n"
-		"#endif                           \n"
-		: ""
-		// Note: OpenGL ES automatically defines this:
-		// #define GL_ES
-#else
-		// Ignore GLES 2 precision specifiers:
-		"#define lowp   \n"
-		"#define mediump\n"
-		"#define highp  \n"
-#endif
-		,
-		source };
+		version,
+		precision,
+		source
+	};
 	glShaderSource(res, 3, sources, NULL);
 	free((void*)source);
 	
