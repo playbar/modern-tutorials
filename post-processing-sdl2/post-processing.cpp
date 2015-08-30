@@ -12,6 +12,7 @@ using namespace std;
 
 /* Use glew.h instead of gl.h to get all the GL prototypes declared */
 #include <GL/glew.h>
+#define GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS 0x8CD9
 /* Using SDL2 for the base window and OpenGL context init */
 #include "SDL.h"
 /* Using SDL2_image to load PNG & JPG in memory */
@@ -350,7 +351,21 @@ bool init_resources(char* model_filename, char* vshader_filename, char* fshader_
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo_depth);
 	GLenum status;
 	if ((status = glCheckFramebufferStatus(GL_FRAMEBUFFER)) != GL_FRAMEBUFFER_COMPLETE) {
-		fprintf(stderr, "glCheckFramebufferStatus: error 0x%x", status);
+		cerr << "glCheckFramebufferStatus: error 0x" << hex << status << endl;
+		switch (status) {
+		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+			cerr << "GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT" << endl;
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
+			cerr << "GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS" << endl;
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+			cerr << "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT" << endl;
+			break;
+		case GL_FRAMEBUFFER_UNSUPPORTED:
+			cerr << "GL_FRAMEBUFFER_UNSUPPORTED" << endl;
+			break;
+		}
 		return false;
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
