@@ -18,6 +18,7 @@ using namespace std;
 
 /* GLM */
 // #define GLM_MESSAGES
+#define GLM_SWIZZLE
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -31,10 +32,10 @@ GLint uniform_mvp, uniform_mytexture;
 
 bool init_resources() {
 	GLfloat sprite_vertices[] = {
-	    0,    0, 0, 1,
-	  256,    0, 0, 1,
-	    0,  256, 0, 1,
-	  256,  256, 0, 1,
+	    0,    0, 1,
+	  256,    0, 1,
+	    0,  256, 1,
+	  256,  256, 1,
 	};
 	glGenBuffers(1, &vbo_sprite_vertices);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_sprite_vertices);
@@ -128,7 +129,8 @@ void logic() {
 		* glm::translate(glm::mat4(1.0f), glm::vec3(-256/2, -256/2, 0.0));
 	
 	glm::mat4 mvp = projection * m_transform; // * view * model * anim;
-	glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
+	glm::mat3 mvp2D(mvp[0].xyw(), mvp[1].xyw(), mvp[3].xyw());
+	glUniformMatrix3fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp2D));
 }
 
 void render(SDL_Window* window) {
@@ -146,7 +148,7 @@ void render(SDL_Window* window) {
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_sprite_vertices);
 	glVertexAttribPointer(
 		attribute_v_coord, // attribute
-		4,                 // number of elements per vertex, here (x,y,z)
+		3,                 // number of elements per vertex, here (x,y,w)
 		GL_FLOAT,          // the type of each element
 		GL_FALSE,          // take our values as-is
 		0,                 // no extra data between each position
