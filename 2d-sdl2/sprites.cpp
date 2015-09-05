@@ -30,6 +30,9 @@ GLuint texture_id;
 GLint attribute_v_coord, attribute_v_texcoord;
 GLint uniform_mvp, uniform_mytexture;
 
+static unsigned int fps_start = 0;
+static unsigned int fps_frames = 0;
+
 bool init_resources() {
 	GLfloat sprite_vertices[] = {
 	    0,    0, 1,
@@ -114,10 +117,23 @@ bool init_resources() {
 		return false;
 	}
 	
+	fps_start = SDL_GetTicks();
+
 	return true;
 }
 
 void logic() {
+	{
+		/* FPS count */
+		fps_frames++;
+		int delta_t = SDL_GetTicks() - fps_start;
+		if (delta_t > 1000) {
+			cout << 1000.0 * fps_frames / delta_t << endl;
+			fps_frames = 0;
+			fps_start = SDL_GetTicks();
+		}
+	}
+
 	float scale = SDL_GetTicks() / 1000.0 * .2;  // 20% per second
 	glm::mat4 projection = glm::ortho(0.0f, 1.0f*screen_width*scale, 1.0f*screen_height*scale, 0.0f);
 	
@@ -218,6 +234,8 @@ int main(int argc, char* argv[]) {
 		cerr << "Error: SDL_GL_CreateContext: " << SDL_GetError() << endl;
 		return EXIT_FAILURE;
 	}
+	// Don't limit FPS (no VSync)
+	SDL_GL_SetSwapInterval(0);
 
 	GLenum glew_status = glewInit();
 	if (glew_status != GLEW_OK) {
