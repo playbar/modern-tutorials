@@ -48,7 +48,7 @@ function init_resources() {
     gl.bindBuffer(gl.ARRAY_BUFFER, vboTriangle);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangleVertices), gl.STATIC_DRAW);
 
-    var compileOk = false, linkOk = false;
+    var linkOk = false;
 
     var vs, fs;
     if (!(vs = createShader('vertexShader', gl.VERTEX_SHADER))) return false;

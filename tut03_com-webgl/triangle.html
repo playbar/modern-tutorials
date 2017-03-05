@@ -53,7 +53,7 @@ function init_resources() {
     gl.bindBuffer(gl.ARRAY_BUFFER, vboTriangle);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangleAttributes), gl.STATIC_DRAW);
 
-    var compileOk = false, linkOk = false;
+    var linkOk = false;
 
     var vs, fs;
     if (!(vs = createShader('vertexShader', gl.VERTEX_SHADER))) return false;
@@ -134,15 +134,15 @@ function render() {
     //freeResources();
 }
 
+function freeResources() {
+    gl.deleteProgram(program);
+    gl.deleteBuffer(vboTriangle);
+}
+
 function frame() {
     window.requestAnimationFrame(frame);
     logic();
     render();
-}
-
-function freeResources() {
-    gl.deleteProgram(program);
-    gl.deleteBuffer(vboTriangle);
 }
 
 function main() {
