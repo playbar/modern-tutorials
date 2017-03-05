@@ -29,16 +29,16 @@ GLint uniform_mvp;
 
 bool init_resources() {
 	GLfloat cube_vertices[] = {
-	    // front
-	    -1.0, -1.0,  1.0,
-	     1.0, -1.0,  1.0,
-	     1.0,  1.0,  1.0,
-	    -1.0,  1.0,  1.0,
-	    // back
-	    -1.0, -1.0, -1.0,
-	     1.0, -1.0, -1.0,
-	     1.0,  1.0, -1.0,
-	    -1.0,  1.0, -1.0,
+		// front
+		-1.0, -1.0,  1.0,
+		 1.0, -1.0,  1.0,
+		 1.0,  1.0,  1.0,
+		-1.0,  1.0,  1.0,
+		// back
+		-1.0, -1.0, -1.0,
+		 1.0, -1.0, -1.0,
+		 1.0,  1.0, -1.0,
+		-1.0,  1.0, -1.0,
 	};
 	glGenBuffers(1, &vbo_cube_vertices);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_cube_vertices);
