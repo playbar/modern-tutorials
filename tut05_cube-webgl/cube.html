@@ -240,7 +240,7 @@ function main() {
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
     if (init_resources()) {
-	window.addEventListener("resize", onResize);
+	window.addEventListener('resize', onResize);
 	onResize();
 	window.requestAnimationFrame(frame);
     }

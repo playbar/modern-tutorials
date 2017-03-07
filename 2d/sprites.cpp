@@ -23,6 +23,7 @@
 int screen_width=800, screen_height=600;
 GLuint vbo_sprite_vertices, vbo_sprite_texcoords;
 GLuint program;
+GLuint texture_id;
 GLint attribute_v_coord, attribute_v_texcoord;
 GLint uniform_mvp, uniform_mytexture;
 
@@ -48,7 +49,6 @@ int init_resources()
   glBindBuffer(GL_ARRAY_BUFFER, vbo_sprite_texcoords);
   glBufferData(GL_ARRAY_BUFFER, sizeof(sprite_texcoords), sprite_texcoords, GL_STATIC_DRAW);
 
-  GLuint texture_id;
   glActiveTexture(GL_TEXTURE0);
   glGenTextures(1, &texture_id);
   glBindTexture(GL_TEXTURE_2D, texture_id);
@@ -161,6 +161,7 @@ void onIdle() {
     * glm::translate(glm::mat4(1.0f), glm::vec3(-256/2, -256/2, 0.0));
 
   glm::mat4 mvp = projection * m_transform; // * view * model * anim;
+  glUseProgram(program);
   glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
   glutPostRedisplay();
 }
@@ -176,6 +177,7 @@ void free_resources()
   glDeleteProgram(program);
   glDeleteBuffers(1, &vbo_sprite_vertices);
   glDeleteBuffers(1, &vbo_sprite_texcoords);
+  glDeleteTextures(1, &texture_id);
 }
 
 

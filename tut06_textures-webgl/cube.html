@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>My Rotating Cube</title>
+    <title>My Textured Cube</title>
     <meta charset="UTF-8" />
     <script src="../common-webgl/shader_utils.js"></script>
     <!--<script src="https://cdn.rawgit.com/humbletim/glm-js/31728cb4/build/glm-js.min.js"></script>-->
@@ -258,7 +258,7 @@ function onResize(ev) {
 function freeResources() {
     gl.deleteProgram(program);
     gl.deleteBuffer(vboCubeVertices);
-    gl.deleteBuffer(vboCubeColors);
+    gl.deleteBuffer(vboCubeTexCoords);
     gl.deleteBuffer(iboCubeElements);
     gl.deleteTexture(textureId);
 }
@@ -285,7 +285,7 @@ function main() {
     res_texture = new Image();
     res_texture.onload = function() {
 	if (init_resources()) {
-	    window.addEventListener("resize", onResize);
+	    window.addEventListener('resize', onResize);
 	    onResize();
 	    window.requestAnimationFrame(frame);
 	}

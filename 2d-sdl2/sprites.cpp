@@ -18,7 +18,7 @@ using namespace std;
 
 /* GLM */
 // #define GLM_MESSAGES
-#define GLM_SWIZZLE
+#define GLM_FORCE_SWIZZLE
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -146,6 +146,7 @@ void logic() {
 	
 	glm::mat4 mvp = projection * m_transform; // * view * model * anim;
 	glm::mat3 mvp2D(mvp[0].xyw(), mvp[1].xyw(), mvp[3].xyw());
+	glUseProgram(program);
 	glUniformMatrix3fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp2D));
 }
 
@@ -200,6 +201,7 @@ void free_resources() {
 	glDeleteProgram(program);
 	glDeleteBuffers(1, &vbo_sprite_vertices);
 	glDeleteBuffers(1, &vbo_sprite_texcoords);
+	glDeleteTextures(1, &texture_id);
 }
 
 void mainLoop(SDL_Window* window) {
