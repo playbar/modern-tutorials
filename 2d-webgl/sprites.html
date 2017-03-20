@@ -4,9 +4,7 @@
     <title>My Sprites</title>
     <meta charset="UTF-8" />
     <script src="../common-webgl/shader_utils.js"></script>
-    <!--<script src="https://cdn.rawgit.com/humbletim/glm-js/31728cb4/build/glm-js.min.js"></script>-->
-    <!-- Patched glm.lookAt() -- https://github.com/humbletim/glm-js/issues/2 -->
-    <script src="../common-webgl/glm-js.min.js"></script>
+    <script src="https://cdn.rawgit.com/humbletim/glm-js/31fd034/build/glm-js.min.js"></script>
     <style>
       body { background-color: lightgrey; margin: 0; overflow: hidden; }
     </style>
@@ -159,10 +157,7 @@ function logic() {
 	    glm.translate(glm.mat4(1), glm.vec3(-256/2, -256/2, 0)));
     
     var mvp = projection['*'](mTransform); // * view * model * anim;
-    //var mvp2D = glm.mat3(mvp[0].xyw, mvp[1].xyw, mvp[3].xyw);
-    var mvp2D = glm.mat3(glm.vec3(mvp[0].x, mvp[0].y, mvp[0].w),
-			 glm.vec3(mvp[1].x, mvp[1].y, mvp[1].w),
-			 glm.vec3(mvp[3].x, mvp[3].y, mvp[3].w));
+    var mvp2D = glm.mat3(mvp[0].xyw, mvp[1].xyw, mvp[3].xyw);
     gl.useProgram(program);
     gl.uniformMatrix3fv(uniformMVP, false, mvp2D.array);
 }
@@ -242,20 +237,6 @@ function main() {
     gl.enable(gl.BLEND);
     //gl.enable(gl.DEPTH_TEST);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-    // Fix missing GLM function
-    // https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glOrtho.xml
-    // https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/gluOrtho2D.xml
-    glm.ortho = function(left, right, bottom, top) {
-	var ret = Array(16).fill(0);
-	ret[0]  = 2 / (right - left);
-	ret[5]  = 2 / (top - bottom);
-	ret[10] = -1;
-	ret[12] = - (right + left) / (right - left);
-	ret[13] = - (top + bottom) / (top - bottom);
-	ret[15] = 1;
-	return glm.mat4(ret);
-    }
 
     res_texture = new Image();
     res_texture.onload = function() {
